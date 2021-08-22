@@ -17,12 +17,13 @@ module Agents
 
     event_description <<-MD
       Events look like this:
-        {
-          "status": {
-            "indicator": "none",
-            "description": "All Systems Operational"
+
+          {
+            "status": {
+              "indicator": "none",
+              "description": "All Systems Operational"
+            }
           }
-        }
     MD
 
     def default_options
