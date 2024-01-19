@@ -10,6 +10,8 @@ module Agents
       The Zoom agent fetches Zoom status.
       I added this agent because with website agent, when indicator is empty for "all ok status", no event was created.
 
+      The `debug` can add verbosity.
+
       `expected_receive_period_in_days` is used to determine if the Agent is working. Set it to the maximum number of days
       that you anticipate passing without this Agent receiving an incoming Event.
       MD
@@ -28,11 +30,13 @@ module Agents
 
     def default_options
       {
+        'debug' => 'false',
         'expected_receive_period_in_days' => '2',
         'changes_only' => 'true'
       }
     end
 
+    form_configurable :debug, type: :boolean
     form_configurable :expected_receive_period_in_days, type: :string
     form_configurable :changes_only, type: :boolean
 
@@ -40,6 +44,10 @@ module Agents
 
       if options.has_key?('changes_only') && boolify(options['changes_only']).nil?
         errors.add(:base, "if provided, changes_only must be true or false")
+      end
+
+      if options.has_key?('debug') && boolify(options['debug']).nil?
+        errors.add(:base, "if provided, debug must be true or false")
       end
 
       unless options['expected_receive_period_in_days'].present? && options['expected_receive_period_in_days'].to_i > 0
