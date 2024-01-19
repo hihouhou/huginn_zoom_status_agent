@@ -57,26 +57,40 @@ module Agents
 
     private
 
+    def log_curl_output(code,body)
+
+      log "request status : #{code}"
+
+      if interpolated['debug'] == 'true'
+        log "request status : #{code}"
+        log "body"
+        log body
+      end
+
+    end
+
     def check_status()
 
-        uri = URI.parse("https://status.zoom.us/api/v2/status.json")
-        response = Net::HTTP.get_response(uri)
+      uri = URI.parse("https://status.zoom.us/api/v2/status.json")
+      response = Net::HTTP.get_response(uri)
 
-        log "fetch status request status : #{response.code}"
-        parsed_json = JSON.parse(response.body)
-        payload = { :status => { :indicator => "#{parsed_json['status']['indicator']}", :description => "#{parsed_json['status']['description']}" } }
+      log_curl_output(response.code,response.body)
 
-        if interpolated['changes_only'] == 'true'
-          if payload.to_s != memory['last_status']
-            memory['last_status'] = payload.to_s
-            create_event payload: payload
-          end
-        else
-          create_event payload: payload
-          if payload.to_s != memory['last_status']
-            memory['last_status'] = payload.to_s
-          end
+      payload = JSON.parse(response.body)
+      event = payload.dup
+      event = { :status => { :name =>  "#{payload['page']['name']}", :indicator => "#{payload['status']['indicator']}", :description => "#{payload['status']['description']}" } }
+
+      if interpolated['changes_only'] == 'true'
+        if payload != memory['last_status']
+          memory['last_status'] = payload
+          create_event payload: event
         end
+      else
+        create_event payload: event
+        if payload != memory['last_status']
+          memory['last_status'] = payload
+        end
+      end
     end
   end
 end
