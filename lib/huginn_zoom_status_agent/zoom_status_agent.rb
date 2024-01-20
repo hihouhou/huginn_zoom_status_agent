@@ -12,6 +12,8 @@ module Agents
 
       The `debug` can add verbosity.
 
+      `changes_only` is only used to emit event about a currency's change.
+
       `expected_receive_period_in_days` is used to determine if the Agent is working. Set it to the maximum number of days
       that you anticipate passing without this Agent receiving an incoming Event.
       MD
@@ -70,7 +72,6 @@ module Agents
       log "request status : #{code}"
 
       if interpolated['debug'] == 'true'
-        log "request status : #{code}"
         log "body"
         log body
       end
@@ -90,8 +91,12 @@ module Agents
 
       if interpolated['changes_only'] == 'true'
         if payload != memory['last_status']
+          if memory['last_status'].nil?
+            create_event payload: event
+          elsif !memory['last_status']['status'].nil? and memory['last_status']['status'].present? and payload['status'] != memory['last_status']['status']
+            create_event payload: event
+          end
           memory['last_status'] = payload
-          create_event payload: event
         end
       else
         create_event payload: event
